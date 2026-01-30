@@ -62,7 +62,7 @@ export const Main = async () => {
           Privacy Policy
         </a>
         <div className="flex flex-1 justify-end items-center">
-          <a href="https://github.com/inferst/evotars" target="_blank">
+          <a href="https://github.com/inferst/evotars-app" target="_blank">
             <Image
               src="/assets/github.svg"
               alt="Github logo"

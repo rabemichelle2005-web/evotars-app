@@ -10,7 +10,7 @@ export function Footer() {
         </a>
         <div className="flex flex-1 justify-end items-center">
           <a
-            href="https://github.com/inferst/evotars"
+            href="https://github.com/inferst/evotars-app"
             target="_blank"
             rel="noreferrer"
           >
