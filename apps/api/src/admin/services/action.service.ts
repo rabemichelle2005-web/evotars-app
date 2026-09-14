@@ -9,6 +9,7 @@ import {
   isSpriteUserActionEntity,
 } from '@repo/types';
 import tinycolor from 'tinycolor2';
+import { FORCED_AVATAR_COLOR, FORCED_AVATAR_SPRITE } from '@/constants';
 import { ActionRepository } from '../repositories/action.repository';
 import { CommandRepository } from '../repositories/command.repository';
 import { TwitchRewardRepository } from '../repositories/twitch-reward.repository';
@@ -93,25 +94,22 @@ export class ActionService {
     userId: number,
     chatterId: string,
   ): Promise<UserInfo> {
-    const chatter = await this.chatterService.getChatter(userId, chatterId);
+    // Ensure the chatter record exists (used for tracking/other features),
+    // but avatar skin/color always resolve to the forced white duck below.
+    await this.chatterService.getChatter(userId, chatterId);
 
     const userInfo = {
       ...userAction.info,
-      sprite: chatter.sprite != '' ? chatter.sprite : userAction.info.sprite,
-      color: chatter.color != '' ? chatter.color : userAction.info.color,
+      sprite: FORCED_AVATAR_SPRITE,
+      color: FORCED_AVATAR_COLOR,
     };
 
     if (await this.isUserActionValid(userId, userAction)) {
-      if (isColorUserActionEntity(userAction)) {
-        const info = { ...userInfo, color: userAction.data.color };
-        await this.chatterService.updateChatter(userId, chatterId, info);
-
-        return info;
-      } else if (isSpriteUserActionEntity(userAction)) {
-        const info = { ...userInfo, sprite: userAction.data.sprite };
-        await this.chatterService.updateChatter(userId, chatterId, info);
-
-        return info;
+      if (
+        isColorUserActionEntity(userAction) ||
+        isSpriteUserActionEntity(userAction)
+      ) {
+        await this.chatterService.updateChatter(userId, chatterId, userInfo);
       }
     }
 

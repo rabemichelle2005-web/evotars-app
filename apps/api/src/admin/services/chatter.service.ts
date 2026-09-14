@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ChatterRepository } from '../repositories/chatter.repository';
-import { TWITCH_PLATFORM_ID } from '@/constants';
+import {
+  FORCED_AVATAR_COLOR,
+  FORCED_AVATAR_SPRITE,
+  TWITCH_PLATFORM_ID,
+} from '@/constants';
 import { Chatter } from '@repo/database';
 import { UserInfo } from '@repo/types';
 
@@ -38,14 +42,17 @@ export class ChatterService {
   public async updateChatter(
     userId: number,
     chatterId: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     info: UserInfo,
   ): Promise<Chatter> {
     const chatter = await this.getChatter(userId, chatterId);
 
+    // Avatar skin/color are locked to a white duck; nothing may persist a
+    // different value here, regardless of what the caller requested.
     return await this.chatterRepository.update(userId, chatter.id, {
       ...chatter,
-      sprite: info.sprite,
-      color: info.color,
+      sprite: FORCED_AVATAR_SPRITE,
+      color: FORCED_AVATAR_COLOR,
     });
   }
 }

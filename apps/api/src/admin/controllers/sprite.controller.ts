@@ -1,4 +1,3 @@
-import { PrismaService } from '@/database/prisma.service';
 import { ZodPipe } from '@/pipes/zod.pipe';
 import {
   BadRequestException,
@@ -12,6 +11,10 @@ import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import { z } from 'zod';
 import { UserRepository } from '../repositories';
+import {
+  FORCED_AVATAR_SPRITE,
+  FORCED_AVATAR_SPRITE_COLLECTION,
+} from '@/constants';
 
 type SpriteDto = {
   guid: string;
@@ -33,10 +36,7 @@ export type SpriteEntity = {
 
 @Controller('/sprite')
 export class SpriteController {
-  constructor(
-    private readonly userRepository: UserRepository,
-    private readonly prismaService: PrismaService,
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   @Post()
   public async getSprite(
@@ -48,64 +48,14 @@ export class SpriteController {
       throw new BadRequestException();
     }
 
-    const data = await this.prismaService.skin.findFirst({
-      where: {
-        name: body.sprite,
-        collection: {
-          userSkinCollection: {
-            some: {
-              userId: user.id,
-              isActive: true,
-            },
-          },
-        },
-        userSkin: {
-          some: {
-            userId: user.id,
-            isActive: true,
-          },
-        },
-      },
-      select: {
-        name: true,
-        collection: true,
-      },
-    });
-
-    if (data) {
-      return this.prepareSprite(data.collection.name, data.name);
-    } else {
-      const data = await this.prismaService.userSkin.findFirst({
-        where: {
-          userId: user.id,
-          isDefault: true,
-          skin: {
-            collection: {
-              userSkinCollection: {
-                some: {
-                  userId: user.id,
-                  isActive: true,
-                  isDefault: true,
-                },
-              },
-            },
-          },
-        },
-        select: {
-          skin: {
-            include: {
-              collection: true,
-            },
-          },
-        },
-      });
-
-      if (data) {
-        return this.prepareSprite(data.skin.collection.name, data.skin.name);
-      }
-    }
-
-    throw new NotFoundException();
+    // Every viewer avatar is locked to the white duck sprite. This endpoint
+    // has a single caller (the overlay's sprite loader), so it always
+    // resolves the bundled duck asset regardless of the requested sprite
+    // name, per-streamer skin configuration, or any command/reward.
+    return this.prepareSprite(
+      FORCED_AVATAR_SPRITE_COLLECTION,
+      FORCED_AVATAR_SPRITE,
+    );
   }
 
   private prepareSprite(collectionName: string, skinName: string): JsonObject {

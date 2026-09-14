@@ -1,5 +1,5 @@
 import { ConfigService } from '@/config/config.service';
-import { TWITCH_PLATFORM_ID, TWITCH_SCOPE } from '@/constants';
+import { FORCED_AVATAR_SPRITE, TWITCH_PLATFORM_ID, TWITCH_SCOPE } from '@/constants';
 import { PrismaService } from '@/database/prisma.service';
 import {
   MessageEntity,
@@ -180,7 +180,7 @@ export class TwitchClientFactory {
             },
             viewers: {
               count: data.viewers,
-              sprite: 'default',
+              sprite: FORCED_AVATAR_SPRITE,
             },
           });
         },

@@ -1,4 +1,5 @@
 import { UserRepository } from '@/admin/repositories';
+import { FORCED_AVATAR_COLOR, FORCED_AVATAR_SPRITE } from '@/constants';
 import { Injectable, Logger } from '@nestjs/common';
 import { Settings, UserToken } from '@repo/database';
 import {
@@ -211,14 +212,16 @@ export class SocketService<
         data.broadcaster.info,
       );
 
-      socket.emit('raid', data);
-      socket.broadcast.to(userGuid).emit('raid', {
+      const raidData = {
         ...data,
         broadcaster: {
           ...data.broadcaster,
           ...chatterInfo,
         },
-      });
+      };
+
+      socket.emit('raid', raidData);
+      socket.broadcast.to(userGuid).emit('raid', raidData);
     });
 
     eventClient.onRewardRedemptionAdd(async (data) => {
@@ -265,18 +268,14 @@ export class SocketService<
     chatterId: string,
     info: UserInfo,
   ): Promise<UserInfo> {
-    const chatter = await this.chatterRepository.getChatterById(
-      userId,
-      chatterId,
-    );
-
-    const sprite = chatter?.sprite ? chatter.sprite : 'default';
-    const color = chatter?.color ? chatter.color : info.color;
+    // Ensure the chatter record exists (used for tracking/other features),
+    // but avatar skin/color always resolve to the forced white duck below.
+    await this.chatterRepository.getChatterById(userId, chatterId);
 
     return {
       ...info,
-      sprite,
-      color,
+      sprite: FORCED_AVATAR_SPRITE,
+      color: FORCED_AVATAR_COLOR,
     };
   }
 
