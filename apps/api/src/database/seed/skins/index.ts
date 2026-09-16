@@ -9,7 +9,7 @@ export async function dudesSkinCollectionSeed(
   const collection = await skinCollectionSeed(prisma, 'dudes');
 
   for (const name of skins) {
-    skinSeed(prisma, name, collection);
+    await skinSeed(prisma, name, collection);
   }
 
   const users = await prisma.user.findMany();

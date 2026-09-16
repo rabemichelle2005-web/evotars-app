@@ -1,10 +1,12 @@
 import { Action, PrismaClient, User } from '@repo/database';
 
+export type CommandSeedResult = 'created' | 'exists' | 'action_missing';
+
 export async function defaultJumpCommandSeed(
   prisma: PrismaClient,
   user: User,
   action?: Action,
-): Promise<void> {
+): Promise<CommandSeedResult> {
   const jumpAction =
     action ??
     (await prisma.action.findFirst({
@@ -12,7 +14,7 @@ export async function defaultJumpCommandSeed(
     }));
 
   if (!jumpAction) {
-    return;
+    return 'action_missing';
   }
 
   // Create non existing command based on actions for each user
@@ -28,30 +30,34 @@ export async function defaultJumpCommandSeed(
     },
   });
 
-  if (!foundJumpCommand) {
-    await prisma.command.create({
-      data: {
-        text: `!jump`,
-        cooldown: 0,
-        isActive: true,
-        action: {
-          connect: {
-            id: jumpAction.id,
-          },
-        },
-        user: {
-          connect: {
-            id: user.id,
-          },
-        },
-        data: {
-          action: {
-            velocityX: 3.5,
-            velocityY: -8,
-          },
-          arguments: [],
+  if (foundJumpCommand) {
+    return 'exists';
+  }
+
+  await prisma.command.create({
+    data: {
+      text: `!jump`,
+      cooldown: 0,
+      isActive: true,
+      action: {
+        connect: {
+          id: jumpAction.id,
         },
       },
-    });
-  }
+      user: {
+        connect: {
+          id: user.id,
+        },
+      },
+      data: {
+        action: {
+          velocityX: 3.5,
+          velocityY: -8,
+        },
+        arguments: [],
+      },
+    },
+  });
+
+  return 'created';
 }

@@ -1,10 +1,11 @@
 import { Action, PrismaClient, User } from '@repo/database';
+import { CommandSeedResult } from './jump';
 
 export async function defaultGrowCommandSeed(
   prisma: PrismaClient,
   user: User,
   action?: Action,
-): Promise<void> {
+): Promise<CommandSeedResult> {
   const growAction =
     action ??
     (await prisma.action.findFirst({
@@ -14,7 +15,7 @@ export async function defaultGrowCommandSeed(
   // Create non existing command based on actions for each user
 
   if (!growAction) {
-    return;
+    return 'action_missing';
   }
 
   const foundGrowCommand = await prisma.command.findFirst({
@@ -28,30 +29,34 @@ export async function defaultGrowCommandSeed(
     },
   });
 
-  if (!foundGrowCommand) {
-    await prisma.command.create({
-      data: {
-        text: `!grow`,
-        cooldown: 20,
-        isActive: true,
-        action: {
-          connect: {
-            id: growAction.id,
-          },
-        },
-        user: {
-          connect: {
-            id: user.id,
-          },
-        },
-        data: {
-          action: {
-            duration: 10,
-            scale: 2,
-          },
-          arguments: [],
+  if (foundGrowCommand) {
+    return 'exists';
+  }
+
+  await prisma.command.create({
+    data: {
+      text: `!grow`,
+      cooldown: 20,
+      isActive: true,
+      action: {
+        connect: {
+          id: growAction.id,
         },
       },
-    });
-  }
+      user: {
+        connect: {
+          id: user.id,
+        },
+      },
+      data: {
+        action: {
+          duration: 10,
+          scale: 2,
+        },
+        arguments: [],
+      },
+    },
+  });
+
+  return 'created';
 }

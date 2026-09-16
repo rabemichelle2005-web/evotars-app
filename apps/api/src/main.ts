@@ -1,4 +1,6 @@
 import { ConfigService } from '@/config/config.service';
+import { PrismaService } from '@/database/prisma.service';
+import { runSeed } from '@/database/seed/run';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { PrismaClient } from '@repo/database';
@@ -47,6 +49,22 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalFilters(new ZodFilter());
   app.useGlobalFilters(new TwitchHttpExceptionFilter());
+
+  // Safety net: actions/skins/commands are normally seeded by the
+  // standalone `build-seed` script Railway runs as its Pre-Deploy
+  // Command. That command lives in Railway's dashboard, outside this
+  // repo, so this app has no way to confirm it actually ran. Re-running
+  // the same idempotent seed here on every boot guarantees jump/dash/grow
+  // commands (and the action/skin catalog) exist for every existing user
+  // even if the Pre-Deploy Command is missing, misconfigured, or skipped.
+  try {
+    const prismaService = app.get(PrismaService);
+    console.log('[boot-seed] starting');
+    await runSeed(prismaService);
+    console.log('[boot-seed] done');
+  } catch (error) {
+    console.error('[boot-seed] failed', error);
+  }
 
   await app.listen(port);
 }

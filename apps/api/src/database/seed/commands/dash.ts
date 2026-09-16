@@ -1,10 +1,11 @@
 import { Action, PrismaClient, User } from '@repo/database';
+import { CommandSeedResult } from './jump';
 
 export async function defaultDashCommandSeed(
   prisma: PrismaClient,
   user: User,
   action?: Action,
-): Promise<void> {
+): Promise<CommandSeedResult> {
   const dashAction =
     action ??
     (await prisma.action.findFirst({
@@ -14,7 +15,7 @@ export async function defaultDashCommandSeed(
   // Create non existing command based on actions for each user
 
   if (!dashAction) {
-    return;
+    return 'action_missing';
   }
 
   const foundDashCommand = await prisma.command.findFirst({
@@ -28,29 +29,33 @@ export async function defaultDashCommandSeed(
     },
   });
 
-  if (!foundDashCommand) {
-    await prisma.command.create({
-      data: {
-        text: `!dash`,
-        cooldown: 0,
-        isActive: true,
-        action: {
-          connect: {
-            id: dashAction.id,
-          },
-        },
-        user: {
-          connect: {
-            id: user.id,
-          },
-        },
-        data: {
-          action: {
-            force: 14,
-          },
-          arguments: [],
+  if (foundDashCommand) {
+    return 'exists';
+  }
+
+  await prisma.command.create({
+    data: {
+      text: `!dash`,
+      cooldown: 0,
+      isActive: true,
+      action: {
+        connect: {
+          id: dashAction.id,
         },
       },
-    });
-  }
+      user: {
+        connect: {
+          id: user.id,
+        },
+      },
+      data: {
+        action: {
+          force: 14,
+        },
+        arguments: [],
+      },
+    },
+  });
+
+  return 'created';
 }
