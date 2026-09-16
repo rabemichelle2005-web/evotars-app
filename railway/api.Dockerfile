@@ -13,7 +13,7 @@ FROM node:20-alpine AS builder
 
 RUN apk add --no-cache openssl
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.10.0
 RUN npm install -g @vercel/ncc
 
 WORKDIR /app
