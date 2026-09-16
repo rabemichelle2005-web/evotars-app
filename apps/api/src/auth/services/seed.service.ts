@@ -2,6 +2,7 @@ import { PrismaService } from '@/database/prisma.service';
 import { defaultDashCommandSeed } from '@/database/seed/commands/dash';
 import { defaultGrowCommandSeed } from '@/database/seed/commands/grow';
 import { defaultJumpCommandSeed } from '@/database/seed/commands/jump';
+import { AVATAR_CUSTOMIZATION_ACTION_NAMES } from '@/database/seed/commands/repair';
 import { defaultUserSkinCollection } from '@/database/seed/skins/collection';
 import { defaultUserSkins } from '@/database/seed/skins/skin';
 import { Injectable } from '@nestjs/common';
@@ -12,7 +13,6 @@ import { User } from '@repo/database';
 // constants.ts). !color and !skin must therefore never be (re)created as
 // active commands here, and any pre-existing rows from before this was
 // locked down must be disabled on next login.
-const AVATAR_CUSTOMIZATION_ACTION_NAMES = ['color', 'sprite'];
 
 @Injectable()
 export class SeedService {
