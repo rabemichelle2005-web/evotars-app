@@ -18,8 +18,12 @@ export function SettingsPage() {
     updateMutation.mutate(data);
   };
 
-  if (!data || settingsQuery.isLoading) {
+  if (settingsQuery.isLoading) {
     return <Loader />;
+  }
+
+  if (settingsQuery.isError || !data) {
+    return null;
   }
 
   return (

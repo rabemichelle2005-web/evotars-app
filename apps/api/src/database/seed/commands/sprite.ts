@@ -31,6 +31,10 @@ export async function defaultSpriteCommandSeed(
       data: {
         text: `!skin`,
         cooldown: 0,
+        // Avatar customization is locked down for this installation - every
+        // viewer is forced to the white duck regardless of command state
+        // (see FORCED_AVATAR_* in constants.ts), so this must never be
+        // created active.
         isActive: false,
         action: {
           connect: {

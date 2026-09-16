@@ -31,7 +31,11 @@ export async function defaultColorCommandSeed(
       data: {
         text: `!color`,
         cooldown: 0,
-        isActive: true,
+        // Avatar customization is locked down for this installation - every
+        // viewer is forced to the white duck regardless of command state
+        // (see FORCED_AVATAR_* in constants.ts), so this must never be
+        // created active.
+        isActive: false,
         action: {
           connect: {
             id: colorAction.id,
